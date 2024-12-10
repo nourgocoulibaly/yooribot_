@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const pool = require('../config/database');
 
 // Crée un nouvel utilisateur
 const createUser = async (username, email, hashedPassword) => {
