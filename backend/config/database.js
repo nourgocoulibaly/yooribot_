@@ -1,22 +1,35 @@
-const { Pool } = require('pg');
-require('dotenv').config(); // Charger les variables d'environnement
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
 
-// Configuration de la connexion à la base de données
-const pool = new Pool({
-    user: process.env.DB_USER, // Nom d'utilisateur PostgreSQL
-    host: process.env.DB_HOST, // Hôte (exemple : localhost)
-    database: process.env.DB_NAME, // Nom de la base
-    password: process.env.DB_PASSWORD, // Mot de passe
-    port: process.env.DB_PORT || 5432, // Port par défaut PostgreSQL
-});
+dotenv.config();
 
-// Vérification de la connexion
-pool.connect((err) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données', err);
-    } else {
-        console.log('Connexion réussie à PostgreSQL');
+// Vérification des variables d'environnement
+const requiredEnvVars = ['DB_USER', 'DB_HOST', 'DB_NAME', 'DB_PASSWORD', 'DB_PORT'];
+for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+        console.error(`La variable d'environnement ${envVar} n'est pas définie`);
+        process.exit(1);
     }
+}
+
+const pool = new Pool({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD.toString(), // Conversion explicite en string
+    port: parseInt(process.env.DB_PORT, 10),
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-module.exports = pool;
+// Test de connexion
+pool.connect((err, client, release) => {
+    if (err) {
+        console.error('Erreur de connexion à PostgreSQL:', err.message);
+        return;
+    }
+    console.log('Connexion à PostgreSQL établie avec succès');
+    release();
+});
+
+export default pool;
