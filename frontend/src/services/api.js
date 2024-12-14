@@ -73,12 +73,12 @@ export const registerUser = async (userData) => {
     }
 };
 
-export const sendMessage = async (message, onChunkReceived) => {
+export const sendMessage = async (message, onChunk, signal) => {
     try {
         // Envoyer le message et obtenir un ID de conversation
         const initResponse = await axios.post('http://192.168.1.71:5000/api/chat/init', {
             message
-        });
+        }, { signal });
         
         const conversationId = initResponse.data.conversationId;
         let isComplete = false;
@@ -89,7 +89,7 @@ export const sendMessage = async (message, onChunkReceived) => {
             const response = await axios.get(`http://192.168.1.71:5000/api/chat/stream/${conversationId}`);
             
             if (response.data.content) {
-                onChunkReceived(response.data.content);
+                onChunk(response.data.content);
                 fullResponse += response.data.content;
             }
             
